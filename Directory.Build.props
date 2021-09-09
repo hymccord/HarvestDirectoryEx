@@ -1,0 +1,31 @@
+<Project>
+  <PropertyGroup>
+    <RepoRoot Condition="'$(RepoRoot)' == ''">$(MSBuildThisFileDirectory)</RepoRoot>
+
+    <TargetFrameworks>netcoreapp3.1;net48</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <DebugType>embedded</DebugType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Nuget package props -->
+    <Authors>Hank McCord</Authors>
+    <RepositoryUrl>https://github.com/InKahootz/HarvestDirectoryEx</RepositoryUrl>
+
+    <!-- Version of WiX4 SDK to use -->
+    <WiXVersion>4.0.0-preview.1-build.63</WiXVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GitVersion.MsBuild" Version="5.7.0" PrivateAssets="All" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <!-- SourceLink Support -->
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

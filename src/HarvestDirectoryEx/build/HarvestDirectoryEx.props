@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <HarvestDirectoryExPath>$(MSBuildThisFileDirectory)..\</HarvestDirectoryExPath>
+    <HarvestDirectoryExDirectory Condition="'$(MSBuildRuntimeType)' == 'Core'">$(HarvestDirectoryExPath)\tools\netcoreapp3.1\</HarvestDirectoryExDirectory>
+    <HarvestDirectoryExDirectory Condition="'$(MSBuildRuntimeType)' != 'Core'">$(HarvestDirectoryExPath)\tools\net48\</HarvestDirectoryExDirectory>
+
+    <HarvestDirectoryExBuildTasksAssembly>$(HarvestDirectoryExDirectory)HarvestDirectoryEx.BuildTasks.dll</HarvestDirectoryExBuildTasksAssembly>
+    <HarvestDirectoryExExtensionAssembly>$(HarvestDirectoryExDirectory)HarvestDirectoryEx.dll</HarvestDirectoryExExtensionAssembly>
+  </PropertyGroup>
+</Project>

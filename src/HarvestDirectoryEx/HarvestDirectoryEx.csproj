@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>WiX directory harvesting with support for including and exlcuding patterns</Description>
+    <Tags>WiX WiX4 Heat HeatExtension DirectoryHarvest</Tags>
+
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);NU5127</NoWarn>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="build/**/*.*" Pack="true">
+      <PackagePath>build</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Sdk" Version="$(WiXVersion)"/>
+    <PackageReference Include="WixToolset.Extensibility" Version="$(WiXVersion)" PrivateAssets="All" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HarvestDirectoryEx.BuildTasks\HarvestDirectoryEx.BuildTasks.csproj" />
+    <ProjectReference Include="..\HarvestDirectoryEx.Core\HarvestDirectoryEx.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TemporaryWix4Reference Include="heat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="@(TemporaryWix4Reference->'%(Identity)')" Private="false">
+      <HintPath>$(PkgWixToolset_Sdk)\tools\netcoreapp3.1\%(Identity).dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(RepoRoot)eng\BuildTask.targets" />
+</Project>

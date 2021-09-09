@@ -1,0 +1,129 @@
+<Project>
+  <ItemGroup>
+    <WixExtension Include="$(HarvestDirectoryExAssembly)">
+      <Name>%(Filename)</Name>
+    </WixExtension>
+  </ItemGroup>
+  <UsingTask TaskName="HeatDirectoryEx" AssemblyFile="$(HarvestDirectoryExBuildTasksAssembly)" />
+
+  <!-- Default HarvestDirectoryEx properties -->
+  <PropertyGroup>
+    <HarvestDirectoryExInclude Condition=" '$(HarvestDirectoryExInclude)' == ''">**\*.*</HarvestDirectoryExInclude>
+    <HarvestDirectoryExExclude Condition=" '$(HarvestDirectoryExExclude)' == ''"></HarvestDirectoryExExclude>
+    <HarvestDirectoryExNoLogo Condition=" '$(HarvestDirectoryExNoLogo)' == '' ">$(HarvestDirectoryNoLogo)</HarvestDirectoryExNoLogo>
+    <HarvestDirectoryExSuppressAllWarnings Condition=" '$(HarvestDirectoryExSuppressAllWarnings)' == '' ">$(HarvestDirectorySuppressAllWarnings)</HarvestDirectoryExSuppressAllWarnings>
+    <HarvestDirectoryExSuppressSpecificWarnings Condition=" '$(HarvestDirectoryExSuppressSpecificWarnings)' == '' ">$(HarvestDirectorySuppressSpecificWarnings)</HarvestDirectoryExSuppressSpecificWarnings>
+    <HarvestDirectoryExTreatWarningsAsErrors Condition=" '$(HarvestDirectoryExTreatWarningsAsErrors)' == '' ">$(HarvestDirectoryTreatWarningsAsErrors)</HarvestDirectoryExTreatWarningsAsErrors>
+    <HarvestDirectoryExTreatSpecificWarningsAsErrors Condition=" '$(HarvestDirectoryExTreatSpecificWarningsAsErrors)' == '' ">$(HarvestDirectoryTreatSpecificWarningsAsErrors)</HarvestDirectoryExTreatSpecificWarningsAsErrors>
+    <HarvestDirectoryExVerboseOutput Condition=" '$(HarvestDirectoryExVerboseOutput)' == '' ">$(HarvestDirectoryVerboseOutput)</HarvestDirectoryExVerboseOutput>
+    <HarvestDirectoryExAutogenerateGuids Condition=" '$(HarvestDirectoryExAutogenerateGuids)' == '' ">$(HarvestDirectoryAutogenerateGuids)</HarvestDirectoryExAutogenerateGuids>
+    <HarvestDirectoryExGenerateGuidsNow Condition=" '$(HarvestDirectoryExGenerateGuidsNow)' == '' ">$(HarvestDirectoryGenerateGuidsNow)</HarvestDirectoryExGenerateGuidsNow>
+    <HarvestDirectoryExSuppressFragments Condition=" '$(HarvestDirectoryExSuppressFragments)' == '' ">$(HarvestDirectorySuppressFragments)</HarvestDirectoryExSuppressFragments>
+    <HarvestDirectoryExSuppressUniqueIds Condition=" '$(HarvestDirectoryExSuppressUniqueIds)' == '' ">$(HarvestDirectorySuppressUniqueIds)</HarvestDirectoryExSuppressUniqueIds>
+    <HarvestDirectoryExTransforms Condition=" '$(HarvestDirectoryExTransforms)' == '' ">$(HarvestDirectoryTransforms)</HarvestDirectoryExTransforms>
+  </PropertyGroup>
+
+  <!--
+    Hook into harvest extensibility point
+  -->
+  <PropertyGroup>
+    <HarvestDependsOn>
+      $(HarvestDependsOn);
+      HarvestDirectoryEx;
+    </HarvestDependsOn>
+  </PropertyGroup>
+
+  <!--
+  ================================================================================================
+  HarvestDirectoryEx
+
+    Harvests directories using heat.exe.
+
+    [IN]
+    @(HarvestDirectoryEx) - The list of directories to harvest.
+    %(HarvestDirectoryEx.Transforms) - XSL transforms to apply to the harvested WiX.
+    %(HarvestDirectoryEx.ComponentGroupName) -  The name of the ComponentGroup to create.
+    %(HarvestDirectoryEx.DirectoryRefId) - The ID of the directory to reference instead of TARGETDIR.
+    %(HarvestDirectoryEx.KeepEmptyDirectories) - Whether to create Directory entries for empty directories.
+    %(HarvestDirectoryEx.PreprocessorVariable) - Substitute SourceDir for another variable name (ex: var.Dir).
+    %(HarvestDirectoryEx.SuppressCom) - Suppress COM elements.
+    %(HarvestDirectoryEx.SuppressRootDirectory) - Suppress a Directory element for the root directory.
+    $(HarvestDirectoryEx.SuppressRegistry) - Suppress registry harvesting.
+
+    [OUT]
+    $(IntermediateOutputPath)_%(HarvestDirectoryEx.ComponentGroupName)_dir.wxs
+        - The generated .wxs files which are added to the @(Compile) item list.
+  ================================================================================================
+  -->
+
+  <ItemDefinitionGroup>
+    <HarvestDirectoryEx>
+      <Include>$(HarvestDirectoryExInclude)</Include>
+      <Exclude>$(HarvestDirectoryExExclude)</Exclude>
+      <Transforms>$(HarvestDirectoryTransforms)</Transforms>
+      <ComponentGroupName>$(HarvestDirectoryComponentGroupName)</ComponentGroupName>
+      <DirectoryRefId>$(HarvestDirectoryDirectoryRefId)</DirectoryRefId>
+      <KeepEmptyDirectories>$(HarvestDirectoryKeepEmptyDirectories)</KeepEmptyDirectories>
+      <PreprocessorVariable>$(HarvestDirectoryPreprocessorVariable)</PreprocessorVariable>
+      <SuppressCom>$(HarvestDirectorySuppressCom)</SuppressCom>
+      <SuppressRootDirectory>$(HarvestDirectorySuppressRootDirectory)</SuppressRootDirectory>
+      <SuppressRegistry>$(HarvestDirectorySuppressRegistry)</SuppressRegistry>
+    </HarvestDirectoryEx>
+  </ItemDefinitionGroup>
+
+  <PropertyGroup>
+    <HarvestDirectoryExDependsOn>
+      GetHarvestDirectoryExContent
+    </HarvestDirectoryExDependsOn>
+  </PropertyGroup>
+
+  <!-- Creates items to include content since wildcards will not work in Target/@Inputs. -->
+  <Target Name="GetHarvestDirectoryExContent">
+    <CreateItem Include="@(HarvestDirectoryEx->'%(FullPath)\**\*')">
+      <Output TaskParameter="Include" ItemName="_HarvestDirectoryExContent" />
+    </CreateItem>
+  </Target>
+
+  <Target Name="HarvestDirectoryEx"
+    DependsOnTargets="$(HarvestDirectoryExDependsOn)"
+    AfterTargets="HarvestDirectory"
+    Inputs="@(_HarvestDirectoryExContent);%(HarvestDirectoryEx.Transforms)"
+    Outputs="$(IntermediateOutputPath)_%(HarvestDirectoryEx.ComponentGroupName)_direx.wxs"
+    Condition=" '@(HarvestDirectoryEx)' != '' ">
+
+    <HeatDirectoryEx
+      NoLogo="true"
+      Include="%(HarvestDirectoryEx.Include)"
+      Exclude="%(HarvestDirectoryEx.Exclude)"
+      SuppressAllWarnings="$(HarvestDirectoryExSuppressAllWarnings)"
+      SuppressSpecificWarnings="$(HarvestDirectoryExSuppressSpecificWarnings)"
+      TreatWarningsAsErrors="$(HarvestDirectoryExTreatWarningsAsErrors)"
+      TreatSpecificWarningsAsErrors="$(HarvestDirectoryExTreatSpecificWarningsAsErrors)"
+      VerboseOutput="$(HarvestDirectoryExVerboseOutput)"
+      AutogenerateGuids="$(HarvestDirectoryExAutogenerateGuids)"
+      GenerateGuidsNow="$(HarvestDirectoryExGenerateGuidsNow)"
+      OutputFile="$(IntermediateOutputPath)_%(HarvestDirectoryEx.ComponentGroupName)_direx.wxs"
+      SuppressFragments="$(HarvestDirectoryExSuppressFragments)"
+      SuppressUniqueIds="$(HarvestDirectoryExSuppressUniqueIds)"
+      Transforms="%(HarvestDirectoryEx.Transforms)"
+      Directory="@(HarvestDirectoryEx)"
+      ComponentGroupName="%(HarvestDirectoryEx.ComponentGroupName)"
+      DirectoryRefId="%(HarvestDirectoryEx.DirectoryRefId)"
+      KeepEmptyDirectories="%(HarvestDirectoryEx.KeepEmptyDirectories)"
+      PreprocessorVariable="%(HarvestDirectoryEx.PreprocessorVariable)"
+      SuppressCom="%(HarvestDirectoryEx.SuppressCom)"
+      SuppressRootDirectory="%(HarvestDirectoryEx.SuppressRootDirectory)"
+      SuppressRegistry="%(HarvestDirectoryEx.SuppressRegistry)"
+      AdditionalOptions="$(HarvestDirectoryExAdditionalOptions)"
+      RunAsSeparateProcess="$(RunWixToolsOutOfProc)"
+      ExtensionFactoryAssembly="$(HarvestDirectoryExExtensionAssembly)"
+      WixDirectory="$(WixBinDir)">
+      <!-- Do not set Toolpath or ToolExe, the task will handle it given the WixBinDir -->
+
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites" />
+
+    </HeatDirectoryEx>
+
+  </Target>
+</Project>

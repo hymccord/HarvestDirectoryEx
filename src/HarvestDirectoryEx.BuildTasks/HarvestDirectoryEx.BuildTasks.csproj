@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+    Don't enable Nullable on this project except for file by file basis.
+    MSBuild tasks don't support nullable properties.
+    -->
+    <Nullable>disable</Nullable>
+
+    <Description>WiX directory harvesting build tasks with support for including and exlcuding patterns</Description>
+
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);NU5127</NoWarn>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+  </PropertyGroup>
+
+  <!--
+    This project cannot reference any WiX related dlls.
+    While they would load fine in MSBuild.exe (.NETFramework), .NET Core has a new class called AssemblyLoadContext
+    that allows you to load dlls in isolation to avoid dependency tree collision (aka DLL hell).
+    -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.7.179" />
+  </ItemGroup>
+
+  <Import Project="$(RepoRoot)eng\BuildTask.targets" />
+</Project>

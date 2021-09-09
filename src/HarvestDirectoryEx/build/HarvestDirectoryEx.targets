@@ -1,0 +1,6 @@
+﻿<Project>
+  <PropertyGroup>
+    <!-- Extension targets needs to be imported after all wix targets have been imported -->
+    <CustomAfterWixTargets>$(MSBuildThisFileDirectory)HarvestDirectoryEx.BuildTasks.targets;$(CustomAfterWixTargets)</CustomAfterWixTargets>
+  </PropertyGroup>
+</Project>

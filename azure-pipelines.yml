@@ -1,0 +1,50 @@
+trigger:
+  branches:
+    include:
+      - master
+      - release/*
+      - development
+  tags:
+    include:
+      - 'v*'
+
+variables:
+  buildConfiguration: 'Release'
+  isTagged: $[startsWith(variables['Build.SourceBranch'], 'refs/tags/v')]
+
+workspace:
+  clean: all
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      version: 5.x
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      arguments: |
+        -c $(buildConfiguration)
+
+  - task: DotNetCoreCLI@2
+    displayName: Pack
+    inputs:
+      command: 'pack'
+      projects: '**\HarvestDirectoryEx.csproj'
+      # Pack ignores arguments
+      configuration: $(buildConfiguration)
+      nobuild: true
+      includesymbols: false
+
+  - task: DotNetCoreCLI@2
+    displayName: Push
+    # Push packages only on Dev (continuous deployment) or non-dev but tagged (continuous delivery)
+    condition: eq(variables.isTagged, 'true')
+    inputs:
+      command: custom
+      custom: nuget
+      arguments: >
+        push $(Build.ArtifactStagingDirectory)/*.nupkg
+        -s https://api.nuget.org/v3/index.json
+        -k $(NuGetApiKey)

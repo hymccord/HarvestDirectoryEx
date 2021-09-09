@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>HeatDirectoryEx HeatExtension assembly</Description>
+
+    <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);NU5127</NoWarn>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+
+    <!--
+    Copy nuget package dependencies to output folder
+    I found this was needed because on when packing HarvestDirectoryEx.csproj, the ResolveAssemblyReferences can't find
+    the FileSystemGlobbing dll because it's looking for it in the output folder instead of the publish folder where it could be found.
+    Normally, this wouldn't be a problem because the nuspecs would say what package dependencies are required but we are suppressing
+    those so all required output dlls are in the output folder.
+    https://docs.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#copylocallockfileassemblies
+    -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.3.0" />
+
+    <PackageReference Include="WixToolset.Sdk" Version="$(WiXVersion)" PrivateAssets="All" ExcludeAssets="All" />
+    <PackageReference Include="WixToolset.Data" Version="$(WiXVersion)" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="WixToolset.Extensibility" Version="$(WiXVersion)" PrivateAssets="All" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TemporaryWix4Reference Include="heat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="@(TemporaryWix4Reference->'%(Identity)')" Private="false" Publish="false" ExcludeAssets="runtime">
+      <HintPath>$(PkgWixToolset_Sdk)\tools\netcoreapp3.1\%(Identity).dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Import Project="$(RepoRoot)eng\BuildTask.targets" />
+</Project>
